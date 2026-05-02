@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tumor Volume Calculator</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #e8f5e9, #e3f2fd);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      color: #263238;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 430px;
+      background: white;
+      border-radius: 24px;
+      padding: 24px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 26px;
+      text-align: center;
+      color: #1b5e20;
+    }
+
+    .subtitle {
+      margin: 0 0 22px;
+      text-align: center;
+      font-size: 14px;
+      color: #546e7a;
+    }
+
+    label {
+      display: block;
+      margin: 14px 0 6px;
+      font-weight: bold;
+      font-size: 15px;
+    }
+
+    input {
+      width: 100%;
+      padding: 14px;
+      font-size: 18px;
+      border: 1px solid #b0bec5;
+      border-radius: 14px;
+      outline: none;
+    }
+
+    input:focus {
+      border-color: #2e7d32;
+      box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.15);
+    }
+
+    .button-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    button {
+      border: none;
+      border-radius: 14px;
+      padding: 14px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .calculate-button {
+      background: #2e7d32;
+      color: white;
+    }
+
+    .clear-button {
+      background: #eceff1;
+      color: #263238;
+    }
+
+    .result {
+      margin-top: 22px;
+      padding: 18px;
+      border-radius: 18px;
+      background: #f5f5f5;
+      text-align: center;
+      min-height: 76px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .result-title {
+      font-size: 14px;
+      color: #607d8b;
+      margin-bottom: 6px;
+    }
+
+    .result-value {
+      font-size: 26px;
+      font-weight: bold;
+      color: #1b5e20;
+    }
+
+    .error {
+      color: #c62828;
+      font-weight: bold;
+      font-size: 16px;
+    }
+
+    .formula {
+      margin-top: 18px;
+      font-size: 13px;
+      text-align: center;
+      color: #607d8b;
+    }
+
+    .history {
+      margin-top: 20px;
+    }
+
+    .history h2 {
+      font-size: 18px;
+      margin-bottom: 8px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    th, td {
+      padding: 8px;
+      border-bottom: 1px solid #eceff1;
+      text-align: center;
+    }
+
+    th {
+      color: #455a64;
+    }
+
+    @media (max-width: 360px) {
+      .app {
+        padding: 18px;
+      }
+
+      h1 {
+        font-size: 22px;
+      }
+
+      .result-value {
+        font-size: 22px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <h1>Tumor Volume Calculator</h1>
+    <p class="subtitle">Calculate S.C. tumor volume from length and width</p>
+
+    <label for="length">Tumor length</label>
+    <input id="length" type="number" inputmode="decimal" step="0.01" placeholder="Example: 10" />
+
+    <label for="width">Tumor width</label>
+    <input id="width" type="number" inputmode="decimal" step="0.01" placeholder="Example: 5" />
+
+    <div class="button-row">
+      <button class="calculate-button" onclick="calculateTumorVolume()">Calculate</button>
+      <button class="clear-button" onclick="clearForm()">Clear</button>
+    </div>
+
+    <section class="result" id="resultBox">
+      <div class="result-title">Result</div>
+      <div class="result-value" id="resultValue">---</div>
+    </section>
+
+    <div class="formula">Formula: Tumor Volume = (Width² × Length) / 2</div>
+
+    <section class="history" id="historySection" style="display: none;">
+      <h2>Recent calculations</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Length</th>
+            <th>Width</th>
+            <th>T.V.</th>
+          </tr>
+        </thead>
+        <tbody id="historyBody"></tbody>
+      </table>
+    </section>
+  </main>
+
+  <script>
+    const history = [];
+
+    function calculateTumorVolume() {
+      const lengthInput = document.getElementById("length");
+      const widthInput = document.getElementById("width");
+      const resultValue = document.getElementById("resultValue");
+
+      const length = Number(lengthInput.value);
+      const width = Number(widthInput.value);
+
+      if (!lengthInput.value || !widthInput.value) {
+        showError("Please enter both length and width.");
+        return;
+      }
+
+      if (length <= 0 || width <= 0) {
+        showError("Length and width must be positive numbers.");
+        return;
+      }
+
+      if (width > length) {
+        showError("Error: Width cannot be greater than length.");
+        return;
+      }
+
+      const volume = (width ** 2 * length) / 2;
+      const roundedVolume = Math.round(volume * 100) / 100;
+
+      resultValue.className = "result-value";
+      resultValue.textContent = roundedVolume;
+
+      addToHistory(length, width, roundedVolume);
+    }
+
+    function showError(message) {
+      const resultValue = document.getElementById("resultValue");
+      resultValue.className = "error";
+      resultValue.textContent = message;
+    }
+
+    function clearForm() {
+      document.getElementById("length").value = "";
+      document.getElementById("width").value = "";
+      const resultValue = document.getElementById("resultValue");
+      resultValue.className = "result-value";
+      resultValue.textContent = "---";
+    }
+
+    function addToHistory(length, width, volume) {
+      history.unshift({ length, width, volume });
+
+      if (history.length > 5) {
+        history.pop();
+      }
+
+      const historySection = document.getElementById("historySection");
+      const historyBody = document.getElementById("historyBody");
+
+      historySection.style.display = "block";
+      historyBody.innerHTML = "";
+
+      history.forEach(item => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${item.length}</td>
+          <td>${item.width}</td>
+          <td>${item.volume}</td>
+        `;
+        history
