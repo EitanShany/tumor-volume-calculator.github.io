@@ -250,6 +250,7 @@
     function clearForm() {
       document.getElementById("length").value = "";
       document.getElementById("width").value = "";
+
       const resultValue = document.getElementById("resultValue");
       resultValue.className = "result-value";
       resultValue.textContent = "---";
@@ -270,9 +271,16 @@
 
       history.forEach(item => {
         const row = document.createElement("tr");
+
         row.innerHTML = `
           <td>${item.length}</td>
           <td>${item.width}</td>
           <td>${item.volume}</td>
         `;
-        history
+
+        historyBody.appendChild(row);
+      });
+    }
+  </script>
+</body>
+</html>
